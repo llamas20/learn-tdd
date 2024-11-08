@@ -99,7 +99,47 @@ describe('getAuthorList', () => {
         expect(mockFind().sort).toHaveBeenCalledWith([['family_name', 'ascending']]);
 
     });
+    it('should omit sections of lifespan that are not given when retrieving author list', async () => {
+        const sortedAuthors = [
+            {
+                first_name: 'Jane',
+                family_name: 'Austen',
+                date_of_birth: new Date('1775-12-16'),
+                date_of_death: undefined
+            },
+            {
+                first_name: 'Amitav',
+                family_name: 'Ghosh',
+                date_of_birth: undefined,
+                date_of_death: new Date('1910-04-21')
+            },
+            {
+                first_name: 'Rabindranath',
+                family_name: 'Tagore',
+                date_of_birth: undefined,
+                date_of_death: undefined
+            }
+        ];
 
+        // Mock the find method to chain with sort
+        const mockFind = jest.fn().mockReturnValue({
+            sort: jest.fn().mockResolvedValue(sortedAuthors)
+        });
+
+         // Apply the mock directly to the Author model's `find` function
+         Author.find = mockFind;
+
+         // Act: Call the function to get the authors list
+         const result = await getAuthorList();
+ 
+         // Assert: Check if the result matches the expected sorted output
+         const expectedAuthors = [
+             'Austen, Jane : 1775 - ',
+             'Ghosh, Amitav :  - 1910',
+             'Tagore, Rabindranath :  - '
+         ];
+
+    })
     it('should return an empty array when an error occurs', async () => {
         // Arrange: Mock the Author.find() method to throw an error
         Author.find = jest.fn().mockImplementation(() => {
